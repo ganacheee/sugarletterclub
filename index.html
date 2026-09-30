@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>페어틀 메이커</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Batang:wght@400;700&family=Nanum+Gothic+Coding:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:13px/1.45 'Pretendard Variable','Pretendard','Noto Sans KR',system-ui,sans-serif;color:#1b1b1b;background:#c8c8c6}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2b5cff;outline-offset:1px}
+
+.app{display:grid;grid-template-columns:392px minmax(0,1fr);height:100vh}
+.panel{background:#f7f7f6;border-right:1px solid #d6d6d3;overflow-y:auto}
+.ph-head{padding:18px 16px 14px;border-bottom:1px solid #e3e3e0}
+.ph-head h1{margin:0 0 4px;font-size:17px;letter-spacing:-.01em}
+.ph-head p{margin:0;color:#666;font-size:12px}
+
+details.g>summary{padding:12px 16px;font-weight:700;cursor:pointer;border-bottom:1px solid #e3e3e0;list-style:none;display:flex;justify-content:space-between}
+details.g>summary::-webkit-details-marker{display:none}
+details.g>summary::after{content:'+';color:#999;font-weight:400}
+details.g[open]>summary::after{content:'−'}
+.gb{padding:14px 16px 18px;display:grid;gap:12px;border-bottom:1px solid #e3e3e0}
+details.sub{border:1px solid #d9d9d5;border-radius:6px;background:#fff}
+details.sub>summary{padding:9px 12px;cursor:pointer;font-weight:600}
+details.sub .gb{border:0;border-top:1px solid #ececea}
+
+.f{display:grid;gap:5px}
+.f>label{font-size:12px;color:#555;display:flex;justify-content:space-between}
+.f em{font-style:normal;color:#999}
+.f small{color:#888;font-size:11.5px}
+.f input[type=text],.f select,.f textarea{border:1px solid #cfcfcb;background:#fff;padding:7px 9px;border-radius:4px;width:100%}
+.f textarea{resize:vertical;line-height:1.5}
+.f input[type=range]{width:100%;accent-color:#1b1b1b}
+.t-check{display:flex;gap:8px;align-items:center}
+.t-check>label{order:2;color:#333;font-size:13px}
+.t-color{display:flex;justify-content:space-between;align-items:center}
+.t-color input{width:46px;height:28px;padding:0;border:1px solid #cfcfcb;border-radius:4px;background:#fff}
+.cap{font-weight:600;font-size:12px;color:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:34px;height:34px;border-radius:50%;border:1px solid #bbb;cursor:pointer;padding:0}
+.btn{border:1px solid #1b1b1b;background:#fff;padding:7px 12px;border-radius:4px;cursor:pointer}
+.btn.dark{background:#1b1b1b;color:#fff;width:100%;padding:11px;font-weight:700;font-size:14px}
+.btn:disabled{opacity:.5;cursor:wait}
+.bar{position:sticky;bottom:0;background:#f7f7f6;border-top:1px solid #d6d6d3;padding:12px 16px}
+.filerow{display:flex;gap:8px;align-items:center}
+.filerow input[type=file]{flex:1;min-width:0;font-size:12px}
+
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px;min-width:0;overflow:hidden}
+.frame{position:relative;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.16);flex:none;overflow:hidden}
+.hint{font-size:12px;color:#4d4d4d;text-align:center}
+.hint.warn{color:#b3261e;font-weight:600}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:20px;z-index:50}
+.modal.on{display:flex}
+.modal img{max-width:100%;max-height:74vh;background:#fff}
+.modal p{color:#fff;margin:0;font-size:12.5px}
+.modal .row{display:flex;gap:8px}
+.modal a.btn{text-decoration:none;background:#fff;color:#111}
+
+/* ---------- 시트(미리보기·저장 대상) ---------- */
+.sheet{position:absolute;left:0;top:0;width:1600px;transform-origin:0 0;display:flex;flex-direction:column;
+  background:var(--bg);color:var(--ink);font-size:var(--fs);line-height:var(--lh);word-break:keep-all;overflow-wrap:break-word;letter-spacing:var(--lsp)}
+.sheet *{box-sizing:border-box}
+.sheet .hd,.sheet .ft{display:flex;justify-content:space-between;font-size:calc(var(--fs)*.7);color:var(--mute);flex:none}
+.sheet .hd{margin-bottom:30px}
+.sheet .ft{margin-top:30px}
+.sheet .main{flex:1;min-height:0;display:grid;grid-template-rows:minmax(0,1fr)}
+.sheet .L{min-height:0;overflow:hidden;padding-right:var(--g);display:flex;flex-direction:column}
+.sheet .chs{flex:none}
+.sheet .R{min-height:0;overflow:hidden;padding-left:var(--g);display:flex;flex-direction:column}
+.sheet.vl .R{border-left:1px solid var(--line)}
+
+.sheet .chs.rows{display:grid;gap:34px}
+.sheet .chs.rows .ch{display:grid;grid-template-columns:var(--pw) minmax(0,1fr);column-gap:26px;align-items:start}
+.sheet .chs.cols{display:grid;column-gap:22px;align-items:start}
+.sheet .ph{width:100%;aspect-ratio:var(--asp);background:var(--tint)}
+.sheet .ph.bd{border:1px solid var(--ink)}
+.sheet .ph img{width:100%;height:100%;display:block}
+.sheet .ph .empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:calc(var(--fs)*.8)}
+.sheet .tx{font-size:calc(var(--fs)*.84);line-height:1.55;min-width:0}
+.sheet .no{color:var(--mute);margin:.55em 0 .35em;font-size:.9em}
+.sheet .chs.rows .no{margin-top:0}
+.sheet .nm{margin:0;font-family:var(--ft);font-weight:var(--tw);font-size:calc(var(--fs)*1.32);line-height:1.25;letter-spacing:var(--tls)}
+.sheet .rom{color:var(--mute);margin:.15em 0 .7em;font-size:.92em}
+.sheet dl{margin:0}
+.sheet dl>div{display:grid;grid-template-columns:3.6em minmax(0,1fr);padding:.3em 0;border-top:1px solid var(--ls)}
+.sheet dl>div:last-child{border-bottom:1px solid var(--ls)}
+.sheet dt{color:var(--mute)}
+.sheet dd{margin:0}
+.sheet .note{margin:.8em 0 0;font-size:.94em}
+
+.sheet h1{margin:0 0 .3em;font-family:var(--ft);font-weight:var(--tw);font-size:var(--fts);line-height:1.12;letter-spacing:var(--tls)}
+.sheet .subt{color:var(--mute);margin:0 0 2.4em}
+.sheet .body{columns:var(--cols);column-gap:44px}
+.sheet .body p{margin:0 0 1em}
+.sheet .body p:last-child{margin-bottom:0}
+.sheet sup{font-size:.62em;vertical-align:super;line-height:0;margin-left:.08em}
+.sheet .fns{list-style:none;margin:0;padding:0;font-size:calc(var(--fs)*.74);color:var(--mute);line-height:1.6}
+.sheet .fns li{display:grid;grid-template-columns:1.8em minmax(0,1fr);margin-bottom:.35em}
+.sheet .fns.bottom{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.sheet .rm{display:grid;grid-template-columns:minmax(0,1fr) 210px;column-gap:40px}
+.sheet .rm .fns{padding-top:.4em}
+.sheet.notbl dl>div,.sheet.notbl dl>div:last-child{border:0}
+.sheet .rel{flex:none;margin-top:auto;padding-top:28px}
+.sheet .R .rel{margin-top:2.6em;padding-top:0}
+.sheet .rel .rt{color:var(--mute);font-size:calc(var(--fs)*.74);margin-bottom:.8em}
+.sheet .rel .rw{display:flex;align-items:flex-start;column-gap:30px}
+.sheet .rel .dg{position:relative;flex:none}
+.sheet .rel .dg svg{position:absolute;left:0;top:0}
+.sheet .rel .dn{position:absolute;width:30px;height:30px;border-radius:50%;border:1px solid var(--ink);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:calc(var(--fs)*.66);line-height:1;letter-spacing:0;transform:translate(-50%,-50%)}
+.sheet .rel .dlab{position:absolute;white-space:nowrap;font-size:calc(var(--fs)*.76);line-height:1.2}
+.sheet .rel .ln{position:absolute;transform:translate(-50%,-50%);background:var(--bg);padding:2px 5px;font-size:calc(var(--fs)*.7);color:var(--mute);line-height:1}
+.sheet .rel ol{list-style:none;margin:0;padding:0;flex:1;min-width:0;font-size:calc(var(--fs)*.84);line-height:1.55}
+.sheet .rel li{display:grid;grid-template-columns:2em minmax(0,1fr);padding:.3em 0;border-top:1px solid var(--ls)}
+.sheet .rel li:last-child{border-bottom:1px solid var(--ls)}
+.sheet.notbl .rel li,.sheet.notbl .rel li:last-child{border:0}
+.sheet .rel .rn,.sheet .rel .rx,.sheet .rel .mk{color:var(--mute)}
+.sheet .rel .mk{font-size:.86em}
+
+@media (max-width:860px){
+  .app{display:block;height:auto}
+  body{background:#f7f7f6}
+  .stage{position:sticky;top:0;z-index:5;background:#c8c8c6;padding:10px 10px 6px;gap:6px}
+  .panel{overflow:visible;border:0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel" id="panel">
+    <div class="ph-head">
+      <h1>페어틀 메이커</h1>
+      <p>왼쪽엔 인물 사진과 각주, 오른쪽엔 줄글 설명을 넣는 가로형 시트예요.</p>
+    </div>
+  </aside>
+  <main class="stage" id="stage">
+    <div class="frame" id="frame"><div class="sheet" id="sheet"></div></div>
+    <div class="hint" id="hint"></div>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <img id="outImg" alt="저장된 페어틀 이미지">
+  <p>이미지를 길게 눌러 저장하거나 아래 버튼을 사용하세요.</p>
+  <div class="row"><a class="btn" id="dl" download="pairtle.png">다운로드</a><button class="btn" id="closeM">닫기</button></div>
+</div>
+
+<script>
+const W = 1600;
+const $ = s => document.querySelector(s);
+const el = (t, c) => { const e = document.createElement(t); if (c) e.className = c; return e; };
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const FONTS = {
+  pret:  "'Pretendard Variable','Pretendard','Noto Sans KR',system-ui,sans-serif",
+  noto:  "'Noto Sans KR','Pretendard Variable',system-ui,sans-serif",
+  serif: "'Noto Serif KR','Nanum Myeongjo',serif",
+  myeong:"'Nanum Myeongjo','Noto Serif KR',serif",
+  gowun: "'Gowun Batang','Noto Serif KR',serif",
+  mono:  "'IBM Plex Mono','Nanum Gothic Coding',ui-monospace,monospace"
+};
+const FONT_OPTS = [['pret','프리텐다드 (고딕)'],['noto','노토 산스'],['serif','노토 세리프 (명조)'],['myeong','나눔명조'],['gowun','고운바탕'],['mono','모노 (Plex Mono + 나눔고딕코딩)']];
+
+const PRESETS = [
+  {n:'화이트', bg:'#ffffff', ink:'#111111', mute:'#7a7a7a', line:'#111111'},
+  {n:'회백', bg:'#eceeed', ink:'#1a1a1a', mute:'#7a7d7c', line:'#1a1a1a'},
+  {n:'블랙', bg:'#0e0e0e', ink:'#f2f2f2', mute:'#8c8c8c', line:'#f2f2f2'},
+  {n:'블루', bg:'#dfe7f0', ink:'#14233a', mute:'#5d708b', line:'#14233a'},
+  {n:'핑크', bg:'#f6e5e9', ink:'#3b1f27', mute:'#8d6a74', line:'#3b1f27'},
+  {n:'그린', bg:'#e3ebe1', ink:'#1c2b20', mute:'#65786a', line:'#1c2b20'}
+];
+
+const state = {
+  count: 3, layout: 'cols', mark: 'num', tbl: true, aspect: 0.75, pw: 32, photoBorder: false, gray: true, contrast: 1,
+  title: '유리온실 사람들',
+  subtitle: '한서윤 · 도이현 · 윤채 — 인물 설정 시트',
+  body: '폐쇄된 식물원의 온실을 복원하는 세 사람의 이야기. 한서윤[1]은 마지막 관리인이 남긴 열쇠를 물려받았고, 도이현[2]은 그 열쇠가 어느 문에 맞는지 알고 있다.\n\n두 사람은 서로의 과거를 묻지 않는 것으로 관계를 유지해 왔다. 이 규칙은 윤채[3]가 합류하면서 처음으로 깨진다.\n\n이 시트는 관계도가 아니라 **읽는 순서**를 정리하기 위한 것이다. 왼쪽에서 인물을 먼저 확인하고, 오른쪽에서 관계와 사건을 따라 읽는다.',
+  fns: '온실 복원 프로젝트의 공식 명칭은 「제3온실 재개관 사업」이다.\n열쇠는 1930년대에 제작된 것으로 추정되며, 전체 목록은 별도 표에 정리한다.\n윤채는 2024년 가을 학기에 인턴으로 합류했다.',
+  cols: 1, fnPos: 'bottom',
+  hl: '설정 시트 vol.1', hr: '(1)', fl: '@your_id', fr: '2024',
+  hf: true, ratio: 1.6, split: 48, margin: 60, gap: 64, vline: false,
+  bg: '#ffffff', ink: '#111111', mute: '#7a7a7a', line: '#111111',
+  titleFont: 'pret', bodyFont: 'pret', titleWeight: 600, titleSize: 64, fs: 19, lh: 1.85, ls: 0, tls: -0.02,
+  scale: 2,
+  relOn: true, relDiagram: true, relPos: 'left', relTitle: '관계',
+  rels: [
+    {dir:'↔', txt:'열쇠를 매개로 한 동료. 서로의 과거를 묻지 않는다'},
+    {dir:'→', txt:'도면을 처음 보여 준 사람'},
+    {dir:'→', txt:'손이 빠른 사람이라며 눈여겨본다'}
+  ],
+  chars: [
+    {name:'한서윤', rom:'韓瑞允 · Han Seoyun', fields:'나이: 27세\n신장: 168cm\n직업: 식물 복원가\n생일: 3월 2일', note:'말수가 적고 손이 빠르다. 온실 열쇠를 목에 걸고 다닌다.'},
+    {name:'도이현', rom:'都以賢 · Do Ihyeon', fields:'나이: 29세\n신장: 181cm\n직업: 건축 기록관\n생일: 11월 14일', note:'기록을 남기는 일에 집착한다. 온실 도면을 통째로 외우고 있다.'},
+    {name:'윤채', rom:'尹彩 · Yun Chae', fields:'나이: 22세\n신장: 160cm\n직업: 인턴\n생일: 7월 27일', note:'질문이 많다. 두 사람이 숨긴 것을 가장 먼저 눈치챈다.'}
+  ].map(c => Object.assign(c, {img:null, imgId:0, zoom:1, px:50, py:50, key:'', url:''}))
+};
+
+/* ---------- 색 계산 ---------- */
+const hex2rgb = h => { h = h.replace('#',''); if (h.length === 3) h = [...h].map(x => x+x).join(''); return [0,2,4].map(i => parseInt(h.substr(i,2),16)); };
+const mix = (a,b,t) => { const A = hex2rgb(a), B = hex2rgb(b); return '#' + A.map((v,i) => Math.round(v + (B[i]-v)*t).toString(16).padStart(2,'0')).join(''); };
+
+/* ---------- 사진 크롭(저장 시에도 동일하게 나오도록 canvas에서 처리) ---------- */
+function crop(c) {
+  if (!c.img) return null;
+  const key = [c.imgId, state.aspect, c.zoom, c.px, c.py, state.gray, state.contrast].join('|');
+  if (c.key === key) return c.url;
+  const cw = 640, ch = Math.round(cw / state.aspect);
+  const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+  const g = cv.getContext('2d');
+  const iw = c.img.naturalWidth, ih = c.img.naturalHeight;
+  const sc = Math.max(cw/iw, ch/ih) * c.zoom, dw = iw*sc, dh = ih*sc;
+  g.fillStyle = '#fff'; g.fillRect(0,0,cw,ch);
+  g.drawImage(c.img, (cw-dw)*c.px/100, (ch-dh)*c.py/100, dw, dh);
+  if (state.gray || state.contrast !== 1) {
+    const d = g.getImageData(0,0,cw,ch), a = d.data, k = state.contrast;
+    const cl = v => v < 0 ? 0 : v > 255 ? 255 : v;
+    for (let i = 0; i < a.length; i += 4) {
+      let r = a[i], gg = a[i+1], b = a[i+2];
+      if (state.gray) { r = gg = b = .299*r + .587*gg + .114*b; }
+      a[i] = cl((r-128)*k+128); a[i+1] = cl((gg-128)*k+128); a[i+2] = cl((b-128)*k+128);
+    }
+    g.putImageData(d,0,0);
+  }
+  c.url = cv.toDataURL('image/jpeg', .92); c.key = key;
+  return c.url;
+}
+
+/* ---------- 텍스트 변환 ---------- */
+const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\[(\d{1,2})\]/g,'<sup>$1</sup>');
+const parseFields = t => t.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+  const m = l.match(/^([^:：]{1,12})\s*[:：]\s*(.*)$/); return m ? [m[1], m[2]] : ['', l];
+});
+
+/* ---------- 렌더 ---------- */
+const sheet = $('#sheet'), frame = $('#frame'), hint = $('#hint');
+
+const mk = i => {
+  const n = i + 1, a = String.fromCharCode(97 + i);
+  switch (state.mark) {
+    case 'num': return '' + n; case 'paren': return `(${n})`;
+    case 'alpha': return a; case 'alphaParen': return `(${a})`;
+    case 'Alpha': return a.toUpperCase(); default: return '';
+  }
+};
+const pairsOf = () => state.count === 2 ? [[0,1]] : [[0,1],[1,2],[2,0]];
+
+function diagramHTML(P) {
+  const two = state.count === 2, w = 240, h = two ? 112 : 176, R = 15, ink = state.ink;
+  const nodes = two ? [{x:36,y:36,l:'b'},{x:204,y:36,l:'b'}] : [{x:120,y:26,l:'r'},{x:40,y:118,l:'b'},{x:200,y:118,l:'b'}];
+  let svg = '', lbl = '';
+  const head = (tx,ty,vx,vy) => {
+    const bx = tx - vx*9, by = ty - vy*9, nx = -vy*3.6, ny = vx*3.6;
+    return `<polygon points="${tx},${ty} ${bx+nx},${by+ny} ${bx-nx},${by-ny}" fill="${ink}"/>`;
+  };
+  P.forEach(([a,b], n) => {
+    const p = nodes[a], q = nodes[b], dx = q.x-p.x, dy = q.y-p.y, len = Math.hypot(dx,dy), ux = dx/len, uy = dy/len;
+    const x1 = p.x + ux*(R+3), y1 = p.y + uy*(R+3), x2 = q.x - ux*(R+3), y2 = q.y - uy*(R+3);
+    const dir = state.rels[n].dir;
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ink}" stroke-width="1.2"/>`;
+    if (dir === '→' || dir === '↔') svg += head(x2,y2,ux,uy);
+    if (dir === '←' || dir === '↔') svg += head(x1,y1,-ux,-uy);
+    lbl += `<div class="ln" style="left:${(x1+x2)/2}px;top:${(y1+y2)/2}px">${n+1}</div>`;
+  });
+  const nd = nodes.slice(0, state.count).map((p,i) => {
+    const pos = p.l === 'r' ? `left:${p.x+R+9}px;top:${p.y}px;transform:translateY(-50%)` : `left:${p.x}px;top:${p.y+R+6}px;transform:translateX(-50%)`;
+    return `<div class="dn" style="left:${p.x}px;top:${p.y}px">${mk(i) || i+1}</div><div class="dlab" style="${pos}">${esc(state.chars[i].name)}</div>`;
+  }).join('');
+  return `<div class="dg" style="width:${w}px;height:${h}px"><svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>${lbl}${nd}</div>`;
+}
+
+function relHTML() {
+  const s = state; if (!s.relOn) return '';
+  const P = pairsOf();
+  const li = P.map(([a,b], n) => {
+    const r = s.rels[n], A = s.chars[a], B = s.chars[b];
+    return `<li><span class="rn">${n+1}</span><span><span class="mk">${mk(a)}</span> ${esc(A.name)} ${r.dir} <span class="mk">${mk(b)}</span> ${esc(B.name)}${r.txt.trim() ? `<span class="rx">, ${esc(r.txt)}</span>` : ''}</span></li>`;
+  }).join('');
+  return `<div class="rel">${s.relTitle.trim() ? `<div class="rt">${esc(s.relTitle)}</div>` : ''}<div class="rw">${s.relDiagram ? diagramHTML(P) : ''}<ol>${li}</ol></div></div>`;
+}
+
+function charHTML(c, i) {
+  const url = crop(c);
+  const ph = `<div class="ph${state.photoBorder ? ' bd' : ''}">${url ? `<img src="${url}" alt="">` : '<div class="empty">사진</div>'}</div>`;
+  const rows = parseFields(c.fields).map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+  return `<article class="ch">${ph}<div class="tx">
+    ${mk(i) ? `<div class="no">${mk(i)}</div>` : ''}
+    <h3 class="nm">${esc(c.name)}</h3>
+    ${c.rom ? `<div class="rom">${esc(c.rom)}</div>` : ''}
+    ${rows ? `<dl>${rows}</dl>` : ''}
+    ${c.note.trim() ? `<p class="note">${inline(c.note).replace(/\n/g,'<br>')}</p>` : ''}
+  </div></article>`;
+}
+
+function render() {
+  const s = state, H = Math.round(W / s.ratio);
+  const st = sheet.style;
+  st.height = H + 'px';
+  st.padding = s.margin + 'px';
+  st.setProperty('--bg', s.bg); st.setProperty('--ink', s.ink); st.setProperty('--mute', s.mute); st.setProperty('--line', s.line);
+  st.setProperty('--ls', mix(s.bg, s.ink, .18)); st.setProperty('--tint', mix(s.bg, s.ink, .08));
+  st.setProperty('--fs', s.fs + 'px'); st.setProperty('--lh', s.lh); st.setProperty('--fts', s.titleSize + 'px');
+  st.setProperty('--ft', FONTS[s.titleFont]); st.setProperty('--tw', s.titleWeight);
+  st.setProperty('--g', s.gap/2 + 'px'); st.setProperty('--cols', s.cols);
+  st.setProperty('--lsp', s.ls + 'em'); st.setProperty('--tls', s.tls + 'em');
+  st.setProperty('--asp', s.aspect); st.setProperty('--pw', s.pw + '%');
+  st.fontFamily = FONTS[s.bodyFont];
+  sheet.classList.toggle('vl', s.vline);
+  sheet.classList.toggle('notbl', !s.tbl);
+
+  const rel = relHTML();
+  const chars = s.chars.slice(0, s.count).map(charHTML).join('');
+  const chsStyle = s.layout === 'cols' ? `style="grid-template-columns:repeat(${s.count},minmax(0,1fr))"` : '';
+  const paras = s.body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean).map(p => `<p>${inline(p).replace(/\n/g,'<br>')}</p>`).join('');
+  const fnItems = s.fns.split('\n').map(l => l.trim()).filter(Boolean).map((l,i) => `<li><span>${i+1}</span><span>${esc(l)}</span></li>`).join('');
+  const fnList = fnItems ? `<ol class="fns ${s.fnPos === 'side' ? 'side' : 'bottom'}">${fnItems}</ol>` : '';
+  const right = s.fnPos === 'side'
+    ? `<h1>${esc(s.title)}</h1><p class="subt">${esc(s.subtitle)}</p><div class="rm"><div class="body">${paras}</div>${fnList}</div>${s.relPos === 'right' ? rel : ''}`
+    : `<h1>${esc(s.title)}</h1><p class="subt">${esc(s.subtitle)}</p><div class="body">${paras}</div>${s.relPos === 'right' ? rel : ''}${fnList}`;
+
+  sheet.innerHTML =
+    (s.hf ? `<div class="hd"><span>${esc(s.hl)}</span><span>${esc(s.hr)}</span></div>` : '') +
+    `<div class="main" style="grid-template-columns:${s.split}fr ${100 - s.split}fr">
+       <section class="L"><div class="chs ${s.layout}" ${chsStyle}>${chars}</div>${s.relPos === 'left' ? rel : ''}</section>
+       <section class="R">${right}</section>
+     </div>` +
+    (s.hf ? `<div class="ft"><span>${esc(s.fl)}</span><span>${esc(s.fr)}</span></div>` : '');
+
+  fit();
+  const over = [...sheet.querySelectorAll('.L,.R')].some(e => e.scrollHeight > e.clientHeight + 2);
+  hint.classList.toggle('warn', over);
+  hint.textContent = over
+    ? '내용이 칸 밖으로 넘칩니다. 글자 크기·여백·사진 크기를 줄여 보세요.'
+    : `${W} × ${H}px · 저장 시 ${W*s.scale} × ${H*s.scale}px`;
+}
+
+function fit() {
+  const H = Math.round(W / state.ratio), st = $('#stage');
+  const mobile = innerWidth <= 860, pad = mobile ? 10 : 32;
+  const aw = st.clientWidth - pad*2;
+  const ah = mobile ? Infinity : st.clientHeight - pad*2 - 30;
+  const sc = Math.max(.1, Math.min(aw / W, ah / H));
+  frame.style.width = W*sc + 'px'; frame.style.height = H*sc + 'px';
+  sheet.style.transform = `scale(${sc})`;
+}
+new ResizeObserver(fit).observe($('#stage'));
+
+/* ---------- 패널 UI ---------- */
+const reg = []; let uid = 0;
+const syncAll = () => reg.forEach(f => f());
+
+function ctl(parent, obj, sp) {
+  const w = el('div', 'f t-' + sp.type), id = 'c' + (uid++);
+  const lab = el('label'); lab.htmlFor = id; lab.append(sp.label);
+  let inp;
+  if (sp.type === 'select') {
+    inp = el('select');
+    sp.opts.forEach(([v,t]) => { const o = el('option'); o.value = v; o.textContent = t; inp.append(o); });
+  } else if (sp.type === 'textarea') { inp = el('textarea'); inp.rows = sp.rows || 3; }
+  else {
+    inp = el('input'); inp.type = sp.type === 'check' ? 'checkbox' : sp.type;
+    if (sp.type === 'range') { inp.min = sp.min; inp.max = sp.max; inp.step = sp.step || 1; }
+  }
+  inp.id = id; if (sp.ph) inp.placeholder = sp.ph;
+  let val; if (sp.type === 'range') { val = el('em'); lab.append(val); }
+  const num = sp.type === 'range' || sp.num;
+  const showVal = () => { if (val) val.textContent = obj[sp.k] + (sp.unit || ''); };
+  const sync = () => { if (sp.type === 'check') inp.checked = !!obj[sp.k]; else inp.value = obj[sp.k]; showVal(); };
+  inp.addEventListener('input', () => {
+    obj[sp.k] = sp.type === 'check' ? inp.checked : num ? +inp.value : inp.value;
+    showVal(); if (sp.after) sp.after(); render();
+  });
+  reg.push(sync); sync();
+  if (sp.type === 'check') w.append(inp, lab); else w.append(lab, inp);
+  if (sp.hint) { const h = el('small'); h.textContent = sp.hint; w.append(h); }
+  parent.append(w); return w;
+}
+
+function group(title, open) {
+  const d = el('details', 'g'); if (open) d.open = true;
+  const s = el('summary'); s.textContent = title;
+  const b = el('div', 'gb'); d.append(s, b); $('#panel').append(d);
+  return b;
+}
+
+/* 1. 인물 */
+let charBoxes = [], relBoxes = [];
+const applyCount = () => {
+  charBoxes.forEach((d,i) => d.style.display = i < state.count ? '' : 'none');
+  relBoxes.forEach((d,i) => d.style.display = (state.count === 2 && i > 0) ? 'none' : '');
+};
+{
+  const b = group('인물 (왼쪽)', true);
+  ctl(b, state, {k:'count', type:'select', label:'인원', num:true, opts:[[2,'2명'],[3,'3명']], after:applyCount});
+  ctl(b, state, {k:'layout', type:'select', label:'배치', opts:[['cols','가로로 나란히 (사진 위 · 각주 아래)'],['rows','세로로 쌓기 (사진 왼쪽 · 각주 오른쪽)']]});
+  ctl(b, state, {k:'aspect', type:'select', label:'사진 비율', num:true, opts:[[0.75,'3:4'],[0.8,'4:5'],[1,'1:1']]});
+  ctl(b, state, {k:'pw', type:'range', label:'사진 너비 (세로 쌓기일 때)', min:20, max:50, unit:'%'});
+  ctl(b, state, {k:'gray', type:'check', label:'사진 흑백'});
+  ctl(b, state, {k:'contrast', type:'range', label:'사진 대비', min:.8, max:1.6, step:.05});
+  ctl(b, state, {k:'photoBorder', type:'check', label:'사진 테두리'});
+  ctl(b, state, {k:'mark', type:'select', label:'인물 번호 표기', opts:[['num','1, 2, 3'],['paren','(1), (2), (3)'],['alpha','a, b, c'],['alphaParen','(a), (b), (c)'],['Alpha','A, B, C'],['none','표시 안 함']]});
+  ctl(b, state, {k:'tbl', type:'check', label:'항목 표 줄 (라벨 구분선)'});
+
+  state.chars.forEach((c, i) => {
+    const d = el('details', 'sub'); if (i === 0) d.open = true;
+    const s = el('summary'); s.textContent = `${i+1}번 인물`; d.append(s);
+    const gb = el('div', 'gb');
+    const fr = el('div', 'filerow'); const fi = el('input'); fi.type = 'file'; fi.accept = 'image/*';
+    const rm = el('button', 'btn'); rm.type = 'button'; rm.textContent = '삭제';
+    fi.addEventListener('change', () => {
+      const f = fi.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => { const im = new Image(); im.onload = () => { c.img = im; c.imgId++; render(); }; im.src = rd.result; };
+      rd.readAsDataURL(f);
+    });
+    rm.addEventListener('click', () => { c.img = null; fi.value = ''; render(); });
+    fr.append(fi, rm); gb.append(fr);
+    ctl(gb, c, {k:'zoom', type:'range', label:'확대', min:1, max:3, step:.05});
+    ctl(gb, c, {k:'px', type:'range', label:'가로 위치', min:0, max:100, unit:'%'});
+    ctl(gb, c, {k:'py', type:'range', label:'세로 위치', min:0, max:100, unit:'%'});
+    ctl(gb, c, {k:'name', type:'text', label:'이름'});
+    ctl(gb, c, {k:'rom', type:'text', label:'부제 (한자·영문 표기)'});
+    ctl(gb, c, {k:'fields', type:'textarea', rows:4, label:'항목', hint:'한 줄에 하나, "라벨: 값" 형식'});
+    ctl(gb, c, {k:'note', type:'textarea', rows:3, label:'각주 (한두 문장 소개)'});
+    d.append(gb); b.append(d); charBoxes.push(d);
+  });
+  applyCount();
+}
+
+/* 2. 본문 */
+{
+  const b = group('본문 (오른쪽)', true);
+  ctl(b, state, {k:'title', type:'text', label:'제목'});
+  ctl(b, state, {k:'subtitle', type:'text', label:'부제'});
+  ctl(b, state, {k:'body', type:'textarea', rows:10, label:'본문', hint:'빈 줄로 문단 구분 · [1]은 위첨자 · **굵게**'});
+  ctl(b, state, {k:'fns', type:'textarea', rows:4, label:'각주', hint:'한 줄에 하나. 위에서부터 1, 2, 3번으로 붙어요'});
+  ctl(b, state, {k:'fnPos', type:'select', label:'각주 위치', opts:[['bottom','하단'],['side','오른쪽 여백']]});
+  ctl(b, state, {k:'cols', type:'select', label:'본문 단', num:true, opts:[[1,'1단'],[2,'2단']]});
+}
+
+/* 관계 표기 */
+{
+  const b = group('관계 표기', false);
+  ctl(b, state, {k:'relOn', type:'check', label:'관계 표기 사용'});
+  ctl(b, state, {k:'relDiagram', type:'check', label:'관계도 그림 함께 표시'});
+  ctl(b, state, {k:'relPos', type:'select', label:'위치', opts:[['left','왼쪽 아래'],['right','오른쪽 본문 아래']]});
+  ctl(b, state, {k:'relTitle', type:'text', label:'제목 (비우면 숨김)'});
+  const caps = ['1번 ↔ 2번 인물', '2번 ↔ 3번 인물', '3번 ↔ 1번 인물'];
+  state.rels.forEach((r, i) => {
+    const box = el('div'); box.style.cssText = 'display:grid;gap:8px;padding-top:4px;border-top:1px solid #e3e3e0';
+    const cap = el('div', 'cap'); cap.textContent = `관계 ${i+1} · ${caps[i]}`; box.append(cap);
+    ctl(box, r, {k:'dir', type:'select', label:'방향', opts:[['↔','↔ 서로'],['→','→ 앞 인물이 뒤 인물에게'],['←','← 뒤 인물이 앞 인물에게'],['—','— 방향 없음']]});
+    ctl(box, r, {k:'txt', type:'text', label:'관계 설명'});
+    b.append(box); relBoxes.push(box);
+  });
+  applyCount();
+}
+
+/* 3. 머리글·바닥글 */
+{
+  const b = group('머리글 · 바닥글', false);
+  ctl(b, state, {k:'hf', type:'check', label:'표시'});
+  const g = el('div', 'grid2'); b.append(g);
+  ctl(g, state, {k:'hl', type:'text', label:'머리글 왼쪽'});
+  ctl(g, state, {k:'hr', type:'text', label:'머리글 오른쪽'});
+  ctl(g, state, {k:'fl', type:'text', label:'바닥글 왼쪽'});
+  ctl(g, state, {k:'fr', type:'text', label:'바닥글 오른쪽'});
+}
+
+/* 4. 시트·여백 */
+{
+  const b = group('시트 · 여백', false);
+  ctl(b, state, {k:'ratio', type:'select', label:'가로형 비율', num:true, opts:[[1.6,'16:10'],[1.7778,'16:9'],[1.5,'3:2'],[1.4142,'A4 가로'],[1.3333,'4:3']]});
+  ctl(b, state, {k:'split', type:'range', label:'왼쪽 너비', min:34, max:62, unit:'%'});
+  ctl(b, state, {k:'margin', type:'range', label:'바깥 여백', min:32, max:120, unit:'px'});
+  ctl(b, state, {k:'gap', type:'range', label:'좌우 간격', min:24, max:140, unit:'px'});
+  ctl(b, state, {k:'vline', type:'check', label:'가운데 세로선'});
+}
+
+/* 5. 색상 */
+{
+  const b = group('색상', false);
+  const sw = el('div', 'swatches');
+  PRESETS.forEach(p => {
+    const x = el('button', 'sw'); x.type = 'button'; x.title = p.n; x.setAttribute('aria-label', p.n + ' 프리셋');
+    x.style.background = `linear-gradient(135deg, ${p.bg} 50%, ${p.ink} 50%)`;
+    x.addEventListener('click', () => { Object.assign(state, {bg:p.bg, ink:p.ink, mute:p.mute, line:p.line}); syncAll(); render(); });
+    sw.append(x);
+  });
+  b.append(sw);
+  ctl(b, state, {k:'bg', type:'color', label:'배경'});
+  ctl(b, state, {k:'ink', type:'color', label:'글자'});
+  ctl(b, state, {k:'mute', type:'color', label:'보조 글자'});
+  ctl(b, state, {k:'line', type:'color', label:'선'});
+}
+
+/* 6. 글꼴 */
+{
+  const b = group('글꼴 · 크기', false);
+  ctl(b, state, {k:'titleFont', type:'select', label:'제목·이름 글꼴', opts:FONT_OPTS});
+  ctl(b, state, {k:'bodyFont', type:'select', label:'본문 글꼴', opts:FONT_OPTS});
+  ctl(b, state, {k:'titleWeight', type:'select', label:'제목 굵기', num:true, opts:[[400,'보통'],[500,'중간'],[600,'세미볼드'],[700,'굵게']]});
+  ctl(b, state, {k:'titleSize', type:'range', label:'제목 크기', min:36, max:120, unit:'px'});
+  ctl(b, state, {k:'fs', type:'range', label:'본문 크기', min:14, max:28, unit:'px'});
+  ctl(b, state, {k:'lh', type:'range', label:'줄 간격', min:1.4, max:2.2, step:.05});
+  ctl(b, state, {k:'ls', type:'range', label:'본문·인물 자간', min:-0.05, max:0.2, step:.005, unit:'em'});
+  ctl(b, state, {k:'tls', type:'range', label:'제목·이름 자간', min:-0.08, max:0.15, step:.005, unit:'em'});
+}
+
+/* 7. 저장 */
+{
+  const b = group('저장 옵션', false);
+  ctl(b, state, {k:'scale', type:'select', label:'해상도', num:true, opts:[[1,'1× (1600px)'],[2,'2× (3200px)'],[3,'3× (4800px)']]});
+}
+
+const bar = el('div', 'bar');
+const saveBtn = el('button', 'btn dark'); saveBtn.type = 'button'; saveBtn.textContent = 'PNG로 저장';
+bar.append(saveBtn); $('#panel').append(bar);
+
+/* ---------- PNG 저장 ---------- */
+saveBtn.addEventListener('click', async () => {
+  saveBtn.disabled = true; saveBtn.textContent = '저장 중…';
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const H = Math.round(W / state.ratio);
+    const canvas = await html2canvas(sheet, {
+      scale: state.scale, backgroundColor: state.bg, useCORS: true, logging: false,
+      width: W, height: H, windowWidth: W, windowHeight: H,
+      onclone: doc => {
+        const s = doc.getElementById('sheet');
+        doc.querySelector('.app').style.display = 'none';
+        doc.body.append(s);
+        doc.body.style.cssText = 'margin:0;overflow:visible;height:auto;background:transparent';
+        doc.documentElement.style.overflow = 'visible';
+        s.style.transform = 'none'; s.style.left = '0'; s.style.top = '0'; s.style.position = 'absolute';
+      }
+    });
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      $('#outImg').src = url; $('#dl').href = url; $('#modal').classList.add('on');
+    }, 'image/png');
+  } catch (e) {
+    alert('저장에 실패했어요. 다시 시도해 주세요.\n' + e.message);
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'PNG로 저장';
+  }
+});
+$('#closeM').addEventListener('click', () => $('#modal').classList.remove('on'));
+
+render();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+</script>
+</body>
+</html>
